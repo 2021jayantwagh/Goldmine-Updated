@@ -19,12 +19,19 @@ class _AddListingPageState extends State<AddListingPage> {
   String _adminName = '';
   final _supabase = Supabase.instance.client;
   final _authController = Get.find<AuthController>();
+  final TextEditingController _propertyNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _checkAdminStatus();
     _loadAdminInfo();
+  }
+
+  @override
+  void dispose() {
+    _propertyNameController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkAdminStatus() async {
@@ -69,6 +76,99 @@ class _AddListingPageState extends State<AddListingPage> {
         _adminName = 'Admin';
         _isLoading = false;
       });
+    }
+  }
+
+  void _validateAndNavigate() {
+    if (_propertyNameController.text.trim().isEmpty) {
+      // Show centered error message box
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB8C100).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFB8C100),
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Property Name Required',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Please enter a property name before proceeding.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFB8C100),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'OK',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AddLocationPage()),
+      );
     }
   }
 
@@ -127,6 +227,7 @@ class _AddListingPageState extends State<AddListingPage> {
 
                       // Property Name Input Field
                       TextField(
+                        controller: _propertyNameController,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.grey.shade100,
@@ -275,13 +376,7 @@ class _AddListingPageState extends State<AddListingPage> {
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
                               ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => AddLocationPage()),
-                                );
-                              },
+                              onPressed: _validateAndNavigate,
                               child: Text(
                                 'Next',
                                 style: GoogleFonts.poppins(

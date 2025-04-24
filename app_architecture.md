@@ -109,3 +109,17 @@ UI (Presentation) → Controller → Use Cases → Repository → Data Sources
 2. **Testability:** Each layer can be unit tested independently
 3. **Flexibility:** Can swap implementations (e.g., replace Supabase with Firebase) with minimal changes
 4. **Scalability:** New features can be added without modifying existing code 
+
+lib/
+  ├── core/            # Core functionality, constants, utilities
+  │   ├── config/      # App configuration
+  │   ├── utils/       # Utility functions
+  │   └── theme/       # App theme data
+  ├── data/            # Data layer
+  │   ├── models/      # Data models
+  │   ├── providers/   # Data providers/services
+  │   └── repositories/ # Repository implementations
+  ├── screens/         # UI screens
+  ├── widgets/         # Reusable widgets
+  ├── controllers/     # Business logic controllers
+  └── main.dart        # Entry point 

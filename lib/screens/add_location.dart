@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'information.dart';
+import 'add_photos_page.dart';
 
 /// Add Location Page
 class AddLocationPage extends StatefulWidget {
@@ -11,26 +12,239 @@ class AddLocationPage extends StatefulWidget {
 }
 
 class _AddLocationPageState extends State<AddLocationPage> {
-  final TextEditingController _locationController = TextEditingController();
+  // Replace single controller with multiple controllers for detailed address fields
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
 
   @override
   void dispose() {
-    _locationController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _postalCodeController.dispose();
+    _countryController.dispose();
     super.dispose();
   }
 
   void _onNextPressed() {
-    String enteredLocation = _locationController.text.trim();
-    if (enteredLocation.isNotEmpty) {
+    // Check which required fields are empty
+    List<String> emptyFields = [];
+
+    if (_streetController.text.trim().isEmpty) {
+      emptyFields.add('Street Address');
+    }
+
+    if (_cityController.text.trim().isEmpty) {
+      emptyFields.add('City');
+    }
+
+    if (_postalCodeController.text.trim().isEmpty) {
+      emptyFields.add('Postal Code');
+    }
+
+    // If any required fields are empty, show the dialog
+    if (emptyFields.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB8C100).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFB8C100),
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Missing Information',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Please fill in the following required fields:',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // List of empty fields
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB8C100).withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: emptyFields
+                          .map((field) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.circle,
+                                      size: 8,
+                                      color: Color(0xFFB8C100),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      field,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFB8C100),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'OK',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      // All required fields are filled, proceed to next page
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => AddPhotosPage()),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a location.')),
-      );
     }
+  }
+
+  // Custom input field builder for reusability
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    bool isRequired = false,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
+                child: Text(
+                  hintText + (isRequired ? ' *' : ''),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              if (isRequired)
+                Text(
+                  ' (Required)',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+            ],
+          ),
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: controller,
+              maxLines: maxLines,
+              keyboardType: keyboardType,
+              decoration: InputDecoration(
+                prefixIcon:
+                    Icon(icon, color: const Color(0xFFB8C100), size: 24),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                hintText: 'Enter $hintText',
+                hintStyle: GoogleFonts.poppins(
+                    fontSize: 14, color: Colors.grey.shade500),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -63,319 +277,61 @@ class _AddLocationPageState extends State<AddLocationPage> {
             Text('location?',
                 style: GoogleFonts.poppins(
                     fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
 
-            // Larger and more prominent location input field
-            TextField(
-              controller: _locationController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.location_on_outlined,
-                    size: 30, color: Color(0xFFB8C100)),
-                hintText: 'Enter full property address...',
-                filled: true,
-                fillColor: Colors.grey.shade200,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
-              ),
-              style: GoogleFonts.poppins(fontSize: 18),
-              onChanged: (text) => setState(() {}),
-              maxLines: 3,
-            ),
-
-            // Help text
-            Padding(
-              padding: const EdgeInsets.only(top: 12.0, left: 8.0),
-              child: Text(
-                'Enter the complete address including street, city, and postal code',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-
-            const Spacer(),
-
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, size: 30),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                const Spacer(),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB8C100),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 60, vertical: 22),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: _onNextPressed,
-                  child: Text('Next',
-                      style: GoogleFonts.poppins(
-                          fontSize: 18, color: Colors.white)),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Add Photos Page
-class AddPhotosPage extends StatefulWidget {
-  @override
-  _AddPhotosPageState createState() => _AddPhotosPageState();
-}
-
-class _AddPhotosPageState extends State<AddPhotosPage> {
-  // Remove the predefined assets - we'll use only uploaded images
-  final List<File> _uploadedImages = [];
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImage() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80, // Reduce image size
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _uploadedImages.add(File(pickedFile.path));
-        });
-
-        // Show confirmation message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Photo added successfully'),
-            backgroundColor: const Color(0xFFB8C100),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error adding photo: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _removeImage(int index) {
-    setState(() {
-      _uploadedImages.removeAt(index);
-    });
-
-    // Show confirmation message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Photo removed'),
-        backgroundColor: Colors.grey,
-        duration: Duration(seconds: 1),
-      ),
-    );
-  }
-
-  Future<void> _takePicture() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _uploadedImages.add(File(pickedFile.path));
-        });
-
-        // Show confirmation message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Photo captured successfully'),
-            backgroundColor: const Color(0xFFB8C100),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error capturing photo: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _onNextPressed() {
-    if (_uploadedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please add at least one photo'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AddInformationPage()),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Add Listing',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Add', style: GoogleFonts.poppins(fontSize: 22)),
-            Text('photos',
-                style: GoogleFonts.poppins(
-                    fontSize: 22, fontWeight: FontWeight.bold)),
-            Text('to your listing', style: GoogleFonts.poppins(fontSize: 22)),
-
-            // Photo count indicator
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 15.0),
-              child: Text(
-                '${_uploadedImages.length} photo${_uploadedImages.length != 1 ? 's' : ''} added',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ),
-
-            // Photo grid
+            // Detailed address form in a scrollable container
             Expanded(
-              child: _uploadedImages.isEmpty
-                  ? Center(
+              child: SingleChildScrollView(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.photo_library_outlined,
-                            size: 80,
-                            color: Colors.grey[400],
+                    _buildTextField(
+                      controller: _streetController,
+                      hintText: 'Street Address',
+                      icon: Icons.home_outlined,
+                      isRequired: true,
+                      maxLines: 2,
+                    ),
+                    _buildTextField(
+                      controller: _cityController,
+                      hintText: 'City',
+                      icon: Icons.location_city_outlined,
+                      isRequired: true,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _stateController,
+                            hintText: 'State/Province',
+                            icon: Icons.map_outlined,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No photos added yet',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Tap the buttons below to add photos',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[500],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _postalCodeController,
+                            hintText: 'Postal Code',
+                            icon: Icons.pin_outlined,
+                            isRequired: true,
+                            keyboardType: TextInputType.number,
                             ),
                           ),
                         ],
-                      ),
-                    )
-                  : GridView.builder(
-                      itemCount: _uploadedImages.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 1,
-                      ),
-                      itemBuilder: (context, index) {
-                        return _buildImageTile(
-                          FileImage(_uploadedImages[index]),
-                          index,
-                        );
-                      },
                     ),
-            ),
-
-            // Photo action buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Camera button
-                  ElevatedButton.icon(
-                    onPressed: _takePicture,
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Camera'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black87,
-                      elevation: 2,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    _buildTextField(
+                      controller: _countryController,
+                      hintText: 'Country',
+                      icon: Icons.public,
                     ),
-                  ),
-
-                  // Gallery button
-                  ElevatedButton.icon(
-                    onPressed: _pickImage,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Gallery'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black87,
-                      elevation: 2,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
             // Navigation buttons
-            Row(
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              child: Row(
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back, size: 30),
@@ -386,7 +342,7 @@ class _AddPhotosPageState extends State<AddPhotosPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB8C100),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 18),
+                          horizontal: 60, vertical: 20),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
@@ -396,68 +352,11 @@ class _AddPhotosPageState extends State<AddPhotosPage> {
                           fontSize: 18, color: Colors.white)),
                 ),
               ],
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildImageTile(ImageProvider imageProvider, int index) {
-    return Stack(
-      children: [
-        // Image container
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            image: DecorationImage(
-              image: imageProvider,
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-
-        // Remove button (top right corner)
-        Positioned(
-          top: 8,
-          right: 8,
-          child: GestureDetector(
-            onTap: () => _removeImage(index),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.close,
-                color: Colors.red,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
-
-        // Photo number indicator (bottom left)
-        Positioned(
-          bottom: 8,
-          left: 8,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.6),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              'Photo ${index + 1}',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

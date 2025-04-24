@@ -11,7 +11,7 @@ class _AddInformationPageState extends State<AddInformationPage> {
   int bedrooms = 3;
   int bathrooms = 2;
   int balconies = 2;
-  int totalRooms = 6;
+  String selectedBhk = "2BHK"; // Default selected BHK
   bool isMonthly = true;
 
   TextEditingController sellPriceController =
@@ -26,8 +26,10 @@ class _AddInformationPageState extends State<AddInformationPage> {
     "Gym",
     "Park",
     "Home Theatre",
-    "Kid’s Friendly"
+    "Kid's Friendly"
   ];
+
+  final List<String> bhkOptions = ["1BHK", "2BHK", "3BHK"];
 
   final Set<String> selectedFacilities = {"Parking Lot", "Garden", "Gym"};
 
@@ -42,12 +44,11 @@ class _AddInformationPageState extends State<AddInformationPage> {
   }
 
   void _onFinishPressed() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => SuccessPage()),
-  );
-}
-
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SuccessPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,21 +131,54 @@ class _AddInformationPageState extends State<AddInformationPage> {
             _buildFeatureRow(
                 "Balcony", balconies, (val) => setState(() => balconies = val)),
 
-            // Total Rooms
+            // BHK Selection
             const SizedBox(height: 20),
-            Text("Total Rooms",
+            Text("Property Type",
                 style: GoogleFonts.poppins(
                     fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
-            Row(
-              children: [4, 6].map((val) {
-                bool selected = totalRooms == val;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: _buildIconButton(val.toString(), selected,
-                      () => setState(() => totalRooms = val)),
-                );
-              }).toList(),
+            Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: bhkOptions.map((bhk) {
+                  bool isSelected = selectedBhk == bhk;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedBhk = bhk;
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFFB8C100)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            bhk,
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: isSelected ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
 
             // Environment / Facilities
